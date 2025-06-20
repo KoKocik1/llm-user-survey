@@ -4,19 +4,19 @@ act_year = datetime.date.today().year
 
 QUESTIONS = {
     "Jaka jest twoja waga w kg?": {
-        "instruction": "Wyciagnij z odpowiedzi wage pomiedzy 10 a 200 kg i zwroc ja jako liczbe calkowita.",
+        "instruction": "Wyciagnij z odpowiedzi wage pomiedzy 10 a 200 kg i zwroc ja jako liczbe calkowita. Wykorzystaj tool validate_range.",
         "db_key": "waga",
     },
     "Jaki jest Twoj rok urodzenia?": {
-        "instruction": f"Znajdz 4-cyfrowa liczbe w przedziale [{act_year-100}, {act_year}] i zwroc ja jako liczbe calkowita.",
+        "instruction": f"Znajdz 4-cyfrowa liczbe w przedziale [{act_year-100}, {act_year}] i zwroc ja jako liczbe calkowita. Wykorzystaj tool validate_range.",
         "db_key": "rok_urodzenia",
     },
     "Jaka jest twoja płeć?": {
-        "instruction": "Normalizuj odpowiedz do jednej z dwóch wartosci: 'Mezczyzna', 'Kobieta'",
+        "instruction": "Normalizuj odpowiedz do jednej z dwoch wartosci: 'Mezczyzna', 'Kobieta'. Plec mozna podac w roznej formie: 'mezczyzna, facet, m itp.'. Nie uzywaj tool validate_range.",
         "db_key": "plec",
     },
     "Czy masz alergie? Jezeli tak to je wymień.": {
-        "instruction": "Jeśli użytkownik odpowie, ze nie ma, zwróć nie. W przeciwnym razie wyciagnij alergie rozdzielone przecinkami",
+        "instruction": "Jeśli użytkownik odpowie, ze nie ma, zwróć nie. W przeciwnym razie wyciagnij alergie rozdzielone przecinkami. Jezeli alergie nie maja sensu, popros o podanie alergii ponownie. Nie uzywaj tool validate_range.",
         "db_key": "alergie",
     }
 }
