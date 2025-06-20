@@ -12,7 +12,7 @@ QUESTIONS = {
         "db_key": "rok_urodzenia",
     },
     "Jaka jest twoja płeć?": {
-        "instruction": "Normalizuj odpowiedz do jednej z trzech wartosci: 'M' dla Mezczyzny, 'K' dla Kobiety",
+        "instruction": "Normalizuj odpowiedz do jednej z dwóch wartosci: 'Mezczyzna', 'Kobieta'",
         "db_key": "plec",
     },
     "Czy masz alergie? Jezeli tak to je wymień.": {
