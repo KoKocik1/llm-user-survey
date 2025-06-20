@@ -1,78 +1,92 @@
-# LLM User Survey Agent
+# 🤖 llm-user-survey
 
-A LangChain-based agent that processes user responses to survey questions with intelligent validation and database storage.
+A conversational user survey system powered by a Large Language Model (LLM). This tool guides the user through answering personal questions in natural language, validates the responses, and generates a summary with an option to make corrections. Built with LangChain and OpenAI.
 
-## Features
+---
 
-- **Intelligent Response Processing**: Uses LangChain agents to extract and validate user responses
-- **Range Validation**: Validates numeric responses against specified ranges
-- **Database Integration**: Automatically saves processed responses to a mock database
-- **Error Handling**: Provides clear feedback for invalid or unclear responses
-- **Multi-language Support**: Handles Polish responses for various question types
+## 🧠 How it works
 
-## Question Types Supported
+1. The user answers questions in natural language.
+2. The system validates and processes answers using an LLM agent.
+3. After summarizing the data, the user can say: "that's wrong, I'm a woman and I weigh 42 kg" – and the agent will update the respective fields.
+4. Final structured data is printed or stored.
 
-1. **Weight Questions**: Extracts weight in kg (range: 10-200 kg)
-2. **Year Questions**: Extracts birth year (range: current_year-100 to current_year)
-3. **Gender Questions**: Normalizes to M (male) or K (female)
-4. **Allergy Questions**: Extracts allergies or returns 'nie' if none
+---
 
-## Installation
+## ✅ Requirements
 
-1. Install dependencies:
+- Python 3.9+
+- OpenAI API key
+- (Optional) `.env` file for configuration
+
+---
+
+## ⚙️ Installation
 
 ```bash
+git clone https://github.com/KoKocik1/llm-user-survey.git
+cd llm-user-survey
+python -m venv venv
+source venv/bin/activate  # or .\venv\Scripts\activate on Windows
 pip install -r requirements.txt
 ```
 
-2. Set up your OpenAI API key:
+---
 
-```bash
-export OPENAI_API_KEY="your-api-key-here"
+## 🔐 Configuration
+
+Create a `.env` file (or export variables), e.g.: `.env.egample`
+
+> 💡 Only `OPENAI_API_KEY` is required. The rest is optional.
+
+To enable agent logs:
+
+```env
+SHOW_LANGCHAIN_LOGS=True
 ```
 
-## Usage
+---
 
-Run the survey:
+## 🚀 Run
 
 ```bash
 python main.py
 ```
 
-The agent will:
+---
 
-1. Ask each question in sequence
-2. Process your response using appropriate tools
-3. Validate ranges where applicable
-4. Save results to the database
-5. Provide feedback on the processing result
+## 🧪 Sample Questions
 
-## Response Processing
-
-- **OK**: Response successfully processed and saved
-- **nie rozumiem**: Agent couldn't understand the response
-- **out of range**: Value is outside the acceptable range
-- **Error**: Technical error occurred during processing
-
-## Database Structure
-
-The mock database stores responses in the following format:
-
-```python
-MOCK_DB = {
-    "waga": None,        # Weight in kg
-    "rok_urodzenia": None, # Birth year
-    "plec": None,        # Gender (M/K)
-    "alergie": None      # Allergies or 'nie'
-}
+```text
+What is your weight in kg?
+What is your year of birth?
+What is your gender?
+Do you have allergies? If so, list them.
 ```
 
-## Tools Available
+---
 
-- `validate_range`: Validates numeric values against ranges
-- `save_to_database`: Saves processed answers to the database
-- `get_question_instruction`: Retrieves specific processing instructions
-- `extract_number_from_text`: Extracts numbers from text
-- `extract_year_from_text`: Extracts 4-digit years
-- `normalize_gender`: Normalizes gender responses
-- `extract_allergies`: Extracts allergy information
+## 🧭 Demo
+
+### Sample run:
+
+```
+What is your weight in kg?
+> I weigh 41
+Saved 41 to database.
+
+What is your year of birth?
+> I was born in 1300
+Validation failed. Please enter a year between 1925 and 2025.
+> 1999
+Saved 1999 as your birth year.
+
+...
+
+Is everything correct? If not, say what you'd like to change:
+> I weigh 411 kg, I was born 2000
+Validation failed. Please enter a year between 1925 and 2025.
+> 42
+Saved 42 kg to the database.
+Saved 2000 as your birth year.
+```
