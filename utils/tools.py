@@ -1,6 +1,6 @@
 from typing import Union, Any
 from langchain_core.tools import tool
-from questions import Questions
+from questions.questions import Questions
 
 
 @tool

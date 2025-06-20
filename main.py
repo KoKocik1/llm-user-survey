@@ -1,62 +1,80 @@
-from typing import Union, Dict, Any
-from langchain_core.tools import tool
-from langchain_openai import ChatOpenAI
-from langchain.agents import create_tool_calling_agent, AgentExecutor
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import HumanMessage, AIMessage
+from Config import Config
+from parser.formatter import parse_summary_changes
+from parser.output_parsers import survey_response_parser
+from agents.summary_agent import create_survey_summary_agent, process_survey_summary
+from agents.question_agent import create_survey_agent, process_survey_question
+from questions.questions import Questions
 from dotenv import load_dotenv
-from tools import Tools
-from questions import Questions
-from prompt import SYSTEM_PROMPT
 
 load_dotenv()
 
-
-def create_survey_agent():
-    llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-
-    tools = [
-        Tools.validate_range,
-        Tools.save_to_database,
-    ]
-
-    prompt = ChatPromptTemplate.from_messages([
-        ("system", SYSTEM_PROMPT),
-        ("human", "{input}"),
-        MessagesPlaceholder(variable_name="agent_scratchpad"),
-    ])
-
-    agent = create_tool_calling_agent(llm, tools, prompt)
-    agent_executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
-
-    return agent_executor
+config = Config()
 
 
-def process_survey_question(agent, question: str, user_input: str) -> str:
-    """Process a single survey question with user input."""
-    prompt = f"Question: {question}\nUser input: {user_input}\n\nProcess this response according to the question type and save to database."
+def user_survey(agent, questions: list[str], user_input: str = None):
+    get_input = user_input is None
+    for question in questions:
+        # ASK USER
+        if get_input:
+            print(f"\n{question}\n")
+        while True:
+            if get_input:
+                # GET USER INPUT
+                user_input = input()
+            result = process_survey_question(agent, question, user_input)
+            if config.show_logs:
+                print(f"Result: {result}")
 
-    try:
-        result = agent.invoke(
-            {"input": prompt, "instructions": Questions.question_tool(question)})
-        return result["output"]
-    except Exception as e:
-        return f"Error processing question: {str(e)}"
+            try:
+                parsed_result = survey_response_parser.parse(result)
+                message = parsed_result.message
+                print(message)
+                get_input = True
+                if parsed_result.finished:
+                    break
+            except Exception as e:
+                print(f"Błąd parsowania odpowiedzi: {e}")
+
+
+def user_summary(question_agent, summary_agent):
+    while True:
+        print(f"\nTwoje dane: {Questions.MOCK_DB}")
+
+        print("\nCzy wszystko się zgadza? Jeśli nie, napisz co chcesz zmienić:")
+
+        user_input = input()
+        result = process_survey_summary(
+            summary_agent, Questions.MOCK_DB, user_input)
+        if config.show_logs:
+            print(f"Wynik podsumowania: {result}")
+        try:
+            changes = parse_summary_changes(result)
+            if config.show_logs:
+                print(f"Zmiany: {changes}")
+            if not changes:
+                if config.show_logs:
+                    print("Summary agent zakończył ankietę!")
+                return
+
+            if config.show_logs:
+                print("\nWykryte zmiany:")
+            for change in changes:
+                user_survey(question_agent, [
+                            change["question"]], change["answer"])
+
+        except Exception:
+            print("Brak zmian lub odpowiedź OK.")
 
 
 if __name__ == "__main__":
     print(
         f"Czesc! Oto pytania, ktore musisz odpowiedziec:\n{Questions.get_all_questions()}\n Zaczynajmy!")
 
-    agent = create_survey_agent()
+    question_agent = create_survey_agent()
+    summary_agent = create_survey_summary_agent()
 
-    for question in Questions.QUESTIONS.keys():
-        print(f"\n{question}\n")
-        while True:
-            user_input = input()
-            result = process_survey_question(agent, question, user_input)
-            print(f"Result: {result}")
-            if result == "OK":
-                break
+    user_survey(question_agent, Questions.QUESTIONS.keys())
 
-    print(f"\nFinal database state: {Questions.MOCK_DB}")
+    user_summary(question_agent, summary_agent)
+
+    print(f"\nCo zapisano w bazie danych: {Questions.MOCK_DB}")
