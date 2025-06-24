@@ -1,0 +1,7 @@
+black
+isort
+langchain-community
+langchain-openai
+langchainhub
+langgraph-api
+langgraph-cli
